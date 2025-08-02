@@ -32,7 +32,7 @@ const user = await Client.users.getUser(userId);
             email: user.emailAddresses[0]?.emailAddress 
         },
     })
-    return redirect('/');
+    return redirect('/dashboard');
     
 }
 export default syncUser;
