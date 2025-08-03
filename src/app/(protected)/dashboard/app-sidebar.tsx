@@ -40,7 +40,7 @@ const items = [
 
 export function AppSidebar() {
     const {open} = useSidebar();
-    const {project, projects, projectid} = useProjects();
+    const {project, projects, projectid, setProjectId} = useProjects();
     return (
         <Sidebar collapsible="icon" variant="floating">
             <SidebarHeader> 
@@ -75,8 +75,9 @@ export function AppSidebar() {
                             {projects?.map((project) => (
                                 <SidebarMenuItem key={project.name}>
                                     {/* <Link href={project.} passHref> */}
-                                        <SidebarMenuButton className={cn("justify-start")}>
-                                            {/* <project.icon className="mr-2 h-4 w-4" /> */}
+                                        <SidebarMenuButton className={cn("justify-start", { "bg-black": projectid === project.id, "text-white": projectid === project.id })} onClick={()=>setProjectId(project.id)} >
+
+                                            <Presentation className={cn("mr-2 h-4 w-4", { "text-blue-500": projectid === project.id })} />
                                             {project.name}
                                         </SidebarMenuButton>
                                     {/* </Link> */}

@@ -7,8 +7,8 @@ import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 
 type forminput ={
-    repoUrl : string;
     projectName : string;
+    repoUrl : string;
     gitHubToken? : string;
 }
 
@@ -38,8 +38,9 @@ const page = () => {
             <h1>Link you Github Repo</h1>
             <div className='flex flex-col items-center justify-center gap-4'>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                   <Input required {...register("repoUrl")} placeholder="Enter your Github Repo URL" className='w-96' />
+                   
                    <Input required {...register("projectName")} placeholder="Enter your Project Name" className='w-96' />
+                   <Input required {...register("repoUrl")} placeholder="Enter your Github Repo URL" className='w-96' />
                    <Input {...register("gitHubToken")} placeholder="Enter your Github Token (optional)" className='w-96' />
                    <button disabled={createProject.isPending} type="submit" className='bg-blue-500 text-white px-4 py-2 mt-2 rounded'>Submit</button>
                 </form>

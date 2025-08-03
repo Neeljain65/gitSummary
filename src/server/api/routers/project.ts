@@ -1,11 +1,12 @@
 import z from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import { polling } from "~/lib/github";
 
 export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure.input(
     z.object({
-      repoUrl: z.string(),
       projectName: z.string(),
+      repoUrl: z.string(),
       gitHubToken: z.string().optional(),
     })
   ).mutation(async ({ ctx, input }) => {
@@ -22,6 +23,8 @@ export const projectRouter = createTRPCRouter({
         
       },
     });
+    await polling(project.id);
+    console.log("Project created and polling started:");
     return project;
   }),
   getProjects: protectedProcedure.query(async ({ ctx }) => {
@@ -38,5 +41,22 @@ export const projectRouter = createTRPCRouter({
     
  
   }),
+  getCommits : protectedProcedure.input(
+    z.object({
+      projectId: z.string(),
+    })
+  ).query(async ({ ctx, input }) => {
+    polling(input.projectId).then().catch(console.error);
+    const commits = await ctx.db.commit.findMany({
+      where: {
+        projectId: input.projectId,
+      },
+      orderBy: {
+        commitDate: 'desc',
+      },
+    });
+    return commits;
+  }),
+  
 
 })
