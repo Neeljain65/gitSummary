@@ -1,4 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Models } from "@google/genai";
+import type { Document } from "@langchain/core/documents";
 
 // The client gets the API key from the environment variable `GEMINI_API_KEY`.
 const ai = new GoogleGenAI({
@@ -6,11 +7,12 @@ const ai = new GoogleGenAI({
 });
 
 
-export const aiSummarizeCommits = async(diff:string)=>{
+
+export const aiSummarizeCommits = async (diff: string) => {
 
     const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: `You are an expert programmer, and you are trying to summarize a git diff.
+        model: "gemini-2.5-flash",
+        contents: `You are an expert programmer, and you are trying to summarize a git diff.
     Reminders about the git diff format:
     For every file, there are a few metadata lines, like (for example):
     \`\`\`
@@ -40,8 +42,61 @@ Example SUMMARY CONTENT:
     please summarize the following git diff : \n\n${diff}
 
     `,
-  });
-  return response.candidates[0].content?.parts[0].text || "No summary available";
+    });
+    return response.candidates[0].content?.parts[0].text || "No summary available";
+
+}
 
 
- }
+
+// (async () => {
+//   const sampleDiff = `
+//   diff --git a/utils/math.js b/utils/math.js
+//   index 12ab34c..56de78f 100644
+//   --- a/utils/math.js
+//   +++ b/utils/math.js
+//   @@ function add(a, b) {
+//   -  return a + b;
+//   +  return a + b + 1;
+//   }
+//   `;
+
+//   console.log(await aiSummarizeCommits(sampleDiff));
+// })();
+
+// Function to summarize code files
+export async function summariseCode(doc: Document) {
+    console.log("Summarizing code for file:", doc.metadata.source);
+    const code = doc.pageContent;
+    const prompt = `You are an intelligent senior software engineer who specializes in onboarding junior software engineers and explaining the purpose of the ${doc.metadata.source} file in the project. You will be given a code file and you will explain the purpose of the file in a few sentences. Here is the code: ${code} Give a summary no more than 100 words of the above code.`;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }]
+    });
+
+    return response.candidates[0].content?.parts[0].text || "No summary available";
+}
+// const mockDoc = {
+//   metadata: { source: "utils/math.js" },
+//   pageContent: `
+// export function add(a, b) {
+//   return a + b;
+// }
+
+// export function subtract(a, b) {
+//   return a - b;
+// }
+// `,
+// };
+
+// // Run test
+// (async () => {
+//   const result = await summarizeCode(mockDoc);
+//   console.log("\nSummary:\n", result);
+// })();
+
+
+
+
+
