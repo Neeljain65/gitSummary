@@ -3,7 +3,6 @@ import type { Document } from '@langchain/core/documents';
 import { summariseCode } from './gemini';
 import { generateEmbedding } from './gemini1';
 import { db } from '~/server/db';
-import { SourceCode } from 'eslint';
 
 export const loadGithubRepo = async(githubUrl: string, githubToken?: string) => {
     const loader = new GithubRepoLoader(githubUrl, {
@@ -17,8 +16,6 @@ export const loadGithubRepo = async(githubUrl: string, githubToken?: string) => 
     const docs = await loader.load();
     return docs
 }
-
-console.log(await loadGithubRepo('https://github.com/Neeljain65/gitSummary'));
 
 export const indexGithubRepo = async(projectId: string, githubUrl: string, githubToken?: string) => {
     const docs = await loadGithubRepo(githubUrl, githubToken);
@@ -46,17 +43,55 @@ export const indexGithubRepo = async(projectId: string, githubUrl: string, githu
     );
 };
 
+// Rate limiting utility function
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const generateEmbeddings = async(docs: Document[]) => {
-    return await Promise.all(docs.map(async (doc) => {
-        const summary = await summariseCode(doc)
-        const embedding = await generateEmbedding(summary);
-        return {
-            summary,
-            embedding,
-            source: JSON.parse(JSON.stringify(doc.pageContent)),
-            fileName: doc.metadata.source,
-        };
-    }));
+    const embeddings: any[] = [];
+    const BATCH_SIZE = 8; // Stay well under the 10 requests/minute limit
+    const DELAY_BETWEEN_BATCHES = 70000; // 70 seconds between batches (safe margin)
+    const DELAY_BETWEEN_REQUESTS = 1000; // 1 second between individual requests
     
+    console.log(`Processing ${docs.length} documents in batches of ${BATCH_SIZE}`);
+    
+    for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+        const batch = docs.slice(i, i + BATCH_SIZE);
+        console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1} of ${Math.ceil(docs.length / BATCH_SIZE)}`);
+        
+        const batchResults = [];
+        
+        for (const doc of batch) {
+            try {
+                console.log(`Processing file: ${doc.metadata.source}`);
+                const summary = await summariseCode(doc);
+                await delay(DELAY_BETWEEN_REQUESTS); // Small delay between requests
+                
+                const embedding = await generateEmbedding(summary);
+                
+                batchResults.push({
+                    summary,
+                    embedding,
+                    sourceCode: JSON.parse(JSON.stringify(doc.pageContent)),
+                    fileName: doc.metadata.source,
+                });
+                
+                await delay(DELAY_BETWEEN_REQUESTS); // Small delay after embedding
+            } catch (error) {
+                console.error(`Error processing ${doc.metadata.source}:`, error);
+                // Continue with next document even if one fails
+                batchResults.push(null);
+            }
+        }
+        
+        embeddings.push(...batchResults);
+        
+        // If there are more batches to process, wait before the next batch
+        if (i + BATCH_SIZE < docs.length) {
+            console.log(`Waiting ${DELAY_BETWEEN_BATCHES / 1000} seconds before next batch...`);
+            await delay(DELAY_BETWEEN_BATCHES);
+        }
+    }
+    
+    // Filter out null results (failed processing)
+    return embeddings.filter(embedding => embedding !== null);
 }

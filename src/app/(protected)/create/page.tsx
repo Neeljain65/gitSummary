@@ -16,7 +16,7 @@ const page = () => {
     const { register, handleSubmit, reset } = useForm<forminput >();
     const createProject = api.project.createProject.useMutation()
     function onSubmit(data: forminput) {
-        console.log(data);
+        // console.log(data);
         createProject.mutate({
             projectName: data.projectName,
             repoUrl: data.repoUrl,

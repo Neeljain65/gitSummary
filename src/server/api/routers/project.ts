@@ -24,9 +24,18 @@ export const projectRouter = createTRPCRouter({
         
       },
     });
-    await indexGithubRepo(project.id, input.repoUrl, input.gitHubToken);
-    await polling(project.id);
-    console.log("Project created and polling started:");
+    
+    // Process embeddings in the background - don't await
+    indexGithubRepo(project.id, input.repoUrl, input.gitHubToken)
+      .then(() => {
+        console.log(`Embeddings completed for project ${project.id}`);
+        return polling(project.id);
+      })
+      .catch((error: any) => {
+        console.error(`Error processing embeddings for project ${project.id}:`, error);
+      });
+    
+    console.log("Project created, embedding processing started in background");
     return project;
   }),
   getProjects: protectedProcedure.query(async ({ ctx }) => {
@@ -58,6 +67,27 @@ export const projectRouter = createTRPCRouter({
       },
     });
     return commits;
+  }),
+  
+  getEmbeddingStatus: protectedProcedure.input(
+    z.object({
+      projectId: z.string(),
+    })
+  ).query(async ({ ctx, input }) => {
+    const totalEmbeddings = await ctx.db.sourceCodeEmbedding.count({
+      where: {
+        projectId: input.projectId,
+      },
+    });
+    
+    // For simplicity, if embeddings exist in the table, they're considered processed
+    // In a production app, you might want to add a status field to track processing state
+    return {
+      total: totalEmbeddings,
+      processed: totalEmbeddings,
+      isComplete: totalEmbeddings > 0,
+      progress: totalEmbeddings > 0 ? 100 : 0,
+    };
   }),
   
 

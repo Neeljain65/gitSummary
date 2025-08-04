@@ -54,7 +54,7 @@ export const polling = async(projectId: string)=>{
         return ""
 
     });
-    console.log(unProcessedCommits,"summaries");
+    // console.log(unProcessedCommits,"summaries");
     const commit = await db.commit.createMany({
         data: summaries.map((summary, index)=>{
             return {
