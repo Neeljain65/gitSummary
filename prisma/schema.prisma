@@ -7,7 +7,7 @@ generator client {
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
-    extensions = [vector]
+     extensions = [vector]
 }
 
 model Post {
@@ -28,7 +28,7 @@ model user {
     lastName String?
     email String? @unique
     credits Int @default(150)
-    userToProject userToProject[]
+    userToProject userProject[]
 }
 
 model Project {
@@ -40,13 +40,12 @@ model Project {
    githubUrl String?
    deletedAt DateTime?
 
-    userToProject userToProject[]
+    userToProject userProject[]
     commits Commit[]
-
-   SourceCodeEmbedding SourceCodeEmbedding[]
+     SourceCodeEmbedding SourceCodeEmbedding[]
 }
 
-model userToProject{
+model userProject{
     id String  @id @default(cuid())
     userId String
     projectId String
@@ -67,8 +66,8 @@ model Commit{
     project Project @relation(fields: [projectId], references: [id])
     commitMessage String
     commitHash String @unique
-    commitAuthorName String
-    commitAuthorAvatar String
+    commitauthorName String
+    commitauthorAvatar   String
     commitDate DateTime
     summary String
 }
@@ -82,5 +81,3 @@ model SourceCodeEmbedding{
     projectId String
     project Project @relation(fields: [projectId], references: [id])
 }
-
-
