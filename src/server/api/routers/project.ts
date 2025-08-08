@@ -2,6 +2,7 @@ import z from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { polling } from "~/lib/github";
 import { indexGithubRepo } from "~/lib/github-loader";
+import { MeetingStatus } from "@prisma/client";
 
 export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure.input(
@@ -108,4 +109,39 @@ export const projectRouter = createTRPCRouter({
     });
     return question;
   }),
-})
+  uploadMeeting: protectedProcedure.input(
+    z.object({
+      projectId: z.string(),
+      title: z.string(),
+      meetingUrl: z.string(),
+    })
+  ).mutation(async ({ ctx, input }) => {
+    const meeting = await ctx.db.meeting.create({
+      data: {
+        meetingUrl: input.meetingUrl,
+        projectId: input.projectId ,
+        title: input.title,
+        status: MeetingStatus.PROCESSING,
+      },
+    });
+    return meeting;
+  }),
+  getMeetings: protectedProcedure.input(
+    z.object({
+      projectId: z.string(),
+    })
+  ).query(async ({ ctx, input }) => {
+    const meetings = await ctx.db.meeting.findMany({
+      where: {
+        projectId: input.projectId,
+      },
+      include: {
+        Issue: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    return meetings;
+  }),
+});

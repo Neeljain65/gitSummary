@@ -32,7 +32,7 @@ const items = [
     {
         label : 'Meeting',
         icon : Presentation,
-        href: '/meeting',
+        href: '/meetings',
     }
 ]
 

@@ -1,15 +1,22 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { Card } from "~/components/ui/card";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { useDropzone } from "react-dropzone";
 import { Presentation, Upload } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { api } from "~/trpc/react";
+import useProjects from "~/hooks/use-projects";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const MeetingCard = () => {
+  const project = useProjects();
   const [isUploading, setIsUploading] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [error, setError] = React.useState<string | null>(null);
+  const router = useRouter();
+  const uploadMeeting = api.project.uploadMeeting.useMutation();
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: async (acceptedFiles: File[]) => {
@@ -19,9 +26,6 @@ const MeetingCard = () => {
       }
 
       const file = acceptedFiles[0];
-      setError(null);
-
-      // Validate file
       if (!file) {
         setError("No file selected.");
         return;
@@ -32,14 +36,20 @@ const MeetingCard = () => {
         return;
       }
 
+      if (file.name.length > 100) {
+        setError("File name is too long. Maximum length is 100 characters.");
+        return;
+      }
+
+      if (!project || !project.project?.id) {
+        setError("No project selected. Please select a project first.");
+        return;
+      }
+
       try {
         setIsUploading(true);
         setProgress(0);
-
-        // Simulate progress
-        const interval = setInterval(() => {
-          setProgress((prev) => Math.min(prev + 10, 90)); // Increment up to 90%
-        }, 500);
+        setError(null);
 
         const formData = new FormData();
         formData.append("file", file);
@@ -49,20 +59,35 @@ const MeetingCard = () => {
           body: formData,
         });
 
-        clearInterval(interval); // Stop simulation
-        setProgress(100); // Set to 100% on completion
-
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(errorText || "Upload failed");
         }
 
         const data = await response.json();
-        if (data.secure_url) {
-          console.log("Upload successful:", data.secure_url);
-        } else {
-          throw new Error("Invalid response from server");
+        if (!data.secure_url) {
+          throw new Error("Invalid response: secure_url is missing.");
         }
+
+        setProgress(100);
+
+        uploadMeeting.mutate(
+          {
+            projectId: project.project.id,
+            title: file.name,
+            meetingUrl: data.secure_url,
+          },
+          {
+            onSuccess: () => {
+              toast.success("Meeting uploaded successfully");
+              router.push("/meetings");
+            },
+            onError: (error) => {
+              console.error("Error uploading meeting:", error);
+              toast.error("Failed to save meeting. Please try again.");
+            },
+          }
+        );
       } catch (error) {
         console.error("Upload error:", error);
         setError(error instanceof Error ? error.message : "Upload failed");
