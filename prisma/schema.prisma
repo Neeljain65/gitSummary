@@ -86,22 +86,16 @@ model SourceCodeEmbedding{
     project Project @relation(fields: [projectId], references: [id])
 }
 
-model Meeting{
-    id String @id @default(cuid())
-    title String
-    // description String?
-    // startTime DateTime
-    // endTime DateTime
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    meetingUrl String
-
-    projectId String?
-    project Project? @relation(fields: [projectId], references: [id])
-    status MeetingStatus @default(PROCESSING)
-
-    Issue Issue[]
+model Meeting {
+  id String @id @default(cuid())
+  title String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  meetingUrl String
+  projectId String?
+  project Project? @relation(fields: [projectId], references: [id]) 
+  status MeetingStatus @default(PROCESSING)
+  Issue Issue[]
 }
 
 enum MeetingStatus{
