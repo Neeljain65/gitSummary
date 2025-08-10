@@ -30,7 +30,7 @@ export default async function Home() {
             ) : (
               <>
                 <Link href="/sign-in">
-                  <Button variant="ghost" className="text-zinc-200 hover:bg-white/10">Sign in</Button>
+                  <Button variant="ghost" className="text-zinc-200 hover:bg-white/10 hover:text-white">Sign in</Button>
                 </Link>
                 <Link href="/sign-up">
                   <Button className="chrome-button rounded-lg px-5 py-2 text-sm font-semibold">Get Started</Button>
@@ -52,7 +52,7 @@ export default async function Home() {
             Build smarter with a chrome-grade AI copilot
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-balance text-zinc-300">
-            Chrome-silver intelligence for your code, meetings, and commits. Ask. Analyze. Act. GitSummary blends steel-solid reliability with cutting-edge AI.
+           intelligence for your code, meetings, and commits. Ask. Analyze. Act. GitSummary blends steel-solid reliability with cutting-edge AI.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -62,7 +62,7 @@ export default async function Home() {
               </Button>
             </Link>
             <Link href="/dashboard">
-              <Button variant="outline" className="rounded-lg border-white/20 bg-white/5 px-6 py-3 text-zinc-200 hover:bg-white/10">
+              <Button variant="outline" className="rounded-lg border-white/20 bg-white/5 px-6 py-3 text-zinc-200 hover:bg-white/10 hover:text-white">
                 <Github className="mr-2 size-4" /> View Demo
               </Button>
             </Link>
@@ -333,7 +333,7 @@ diff --git a/src/app/(protected)/dashboard/action.ts b/src/app/(protected)/dashb
           <h2 className="metallic-text text-2xl font-bold">Connect with us</h2>
           <p className="mt-2 text-sm text-zinc-300">Questions, feedback, or partnerships? We’d love to hear from you.</p>
           <div className="mt-4">
-            <a href="mailto:hello@gitsummary.app" className="chrome-button inline-block rounded-lg px-5 py-2 text-sm font-semibold">hello@gitsummary.app</a>
+            <a href="mailto:jaineel497@gmail.com" className="chrome-button inline-block rounded-lg px-5 py-2 text-sm font-semibold">Mail us</a>
           </div>
         </div>
       </section>
