@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Bot, LayoutDashboardIcon, Plus, Presentation, ProjectorIcon } from "lucide-react"
 import {
     Sidebar,
@@ -40,11 +41,12 @@ const items = [
 
 export function AppSidebar() {
     const {open} = useSidebar();
+    const pathname = usePathname();
     const {project, projects, projectid, setProjectId} = useProjects();
     return (
         <Sidebar collapsible="icon" variant="floating">
             <SidebarHeader> 
-                Logo
+                Git Summary
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
@@ -53,16 +55,32 @@ export function AppSidebar() {
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {items.map((item) => (
-                                <SidebarMenuItem key={item.label}>
-                                    <Link href={item.href} passHref>
-                                        <SidebarMenuButton className={cn("justify-start")}>
-                                            <item.icon className="mr-2 h-4 w-4" />
-                                            {item.label}
-                                        </SidebarMenuButton>
-                                    </Link>
-                                </SidebarMenuItem>
-                            ))}
+                            {items.map((item) => {
+                                const isActive = pathname === item.href;
+                                return (
+                                    <SidebarMenuItem key={item.label}>
+                                        <Link href={item.href} passHref>
+                                            <SidebarMenuButton 
+                                                className={cn(
+                                                    "justify-start transition-all duration-200",
+                                                    "hover:bg-gray-100 hover:text-gray-900",
+                                                    "data-[state=open]:bg-gray-100",
+                                                    isActive && [
+                                                        "bg-primary text-primary-foreground",
+                                                        "hover:bg-primary/90 hover:text-primary-foreground"
+                                                    ]
+                                                )}
+                                            >
+                                                <item.icon className={cn(
+                                                    "mr-2 h-4 w-4 transition-colors",
+                                                    isActive && "text-primary-foreground"
+                                                )} />
+                                                {item.label}
+                                            </SidebarMenuButton>
+                                        </Link>
+                                    </SidebarMenuItem>
+                                )
+                            })}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
@@ -72,22 +90,45 @@ export function AppSidebar() {
                     </SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {projects?.map((project) => (
-                                <SidebarMenuItem key={project.name}>
-                                    {/* <Link href={project.} passHref> */}
-                                        <SidebarMenuButton className={cn("justify-start", { "bg-black": projectid === project.id, "text-white": projectid === project.id })} onClick={()=>setProjectId(project.id)} >
-
-                                            <Presentation className={cn("mr-2 h-4 w-4", { "text-blue-500": projectid === project.id })} />
-                                            {project.name}
+                            {projects?.map((proj) => {
+                                const isSelected = projectid === proj.id;
+                                return (
+                                    <SidebarMenuItem key={proj.name}>
+                                        <SidebarMenuButton 
+                                            className={cn(
+                                                "justify-start transition-all duration-200",
+                                                "hover:bg-gray-100 hover:text-gray-900",
+                                                "focus:bg-gray-100 focus:text-gray-900",
+                                                isSelected && [
+                                                    "bg-primary text-primary-foreground",
+                                                    "hover:bg-primary/90 hover:text-primary-foreground",
+                                                    "focus:bg-primary/90 focus:text-primary-foreground"
+                                                ]
+                                            )} 
+                                            onClick={() => setProjectId(proj.id)}
+                                        >
+                                            <Presentation className={cn(
+                                                "mr-2 h-4 w-4 transition-colors",
+                                                isSelected && "text-primary-foreground"
+                                            )} />
+                                            {proj.name}
                                         </SidebarMenuButton>
-                                    {/* </Link> */}
-                                </SidebarMenuItem>
-                            ))}
+                                    </SidebarMenuItem>
+                                )
+                            })}
                         </SidebarMenu>
                     </SidebarGroupContent>
                     <Link href="/create" passHref>
-                        <Button variant={"outline"} className="w-full mt-2"  >
-                            <Plus/>   Create Project
+                        <Button 
+                            variant="outline" 
+                            className={cn(
+                                "w-full mt-2 transition-all duration-200",
+                                "hover:bg-primary hover:text-primary-foreground hover:border-primary",
+                                "focus:bg-primary focus:text-primary-foreground focus:border-primary"
+                            )}
+                        >
+                            <Plus className="mr-2 h-4 w-4" />   
+                            Create Project
                         </Button>
                     </Link>
                 </SidebarGroup>

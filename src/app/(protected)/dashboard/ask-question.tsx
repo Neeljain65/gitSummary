@@ -9,7 +9,9 @@ import { askQuestion } from './action';
 import { readStreamableValue } from '@ai-sdk/rsc';
 import MDEditor from '@uiw/react-md-editor'
 import CodeReferences from './code-refrences';
+import { api } from '~/trpc/react';
 const AskQuestion = () => {
+    const saveAnswer = api.project.saveAnswer.useMutation();
   const {project} = useProjects();
   const [question, setQuestion] = React.useState('');
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -32,28 +34,34 @@ const AskQuestion = () => {
     setLoading(false);
 }
     return (
-        <>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className='sm:max-w-[80vw] max-h-[80vh] overflow-scroll'>
+        <div className=' col-span-1 md:col-span-2 lg:col-span-1'>
+        <Dialog  open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent className='sm:max-w-[85vw] max-h-[80vh] overflow-scroll'>
                 <DialogHeader> 
                     <DialogTitle className="flex items-center">
                         <ShieldQuestion className='mr-2 h-4 w-4' />
                         Ask AI Question
                     </DialogTitle>
                 </DialogHeader>
-                 <MDEditor.Markdown source={answer} className='max-w-[70vw] !h-full max-h-[50vh] overflow-scroll' />
+                    <Button  className='absolute bg-black top-2 right-2'
+                        onClick={() => saveAnswer.mutate({
+                            projectId: project?.id || '',
+                            question,
+                            answer,
+                            fileReferences
+                        })}>Save answer</Button>
+                 <MDEditor.Markdown source={answer} className='max-w-[80vw] p-5  !h-full max-h-[50vh] overflow-y-auto' />
                  <CodeReferences filesReferences={fileReferences} />
-                 <Button type='button' onClick={() => setIsDialogOpen(false)}>Close</Button>
-            </DialogContent>
+              </DialogContent>
         </Dialog>
-        <Card className='relative col-span-1 md:col-span-2 lg:col-span-2'>
+        <Card className='relative col-span-1 md:col-span-2 lg:col-span-2 h-full'>
             <CardHeader>
                 <CardTitle className='text-lg font-semibold'>Ask a Question</CardTitle>
             </CardHeader>
             <CardContent>
                 <form onSubmit={onSubmit} >
                     <textarea 
-                        className="w-full min-h-[100px] p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary mb-4"
+                        className="w-full h-36 p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary mb-4"
                         placeholder='What would you like to know about this project?' 
                         value={question} 
                         onChange={(e) => setQuestion(e.target.value)} 
@@ -64,7 +72,7 @@ const AskQuestion = () => {
                 </form>
             </CardContent>
         </Card>
-        </>
+        </div>
   )
 }
 

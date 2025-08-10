@@ -128,7 +128,7 @@ const MeetingCard = () => {
 });
 
   return (
-    <Card className="col-span-2 flex flex-col items-center justify-center p-10">
+    <Card className="lg:col-span-1 sm:col-span-2  flex flex-col items-center justify-center p-10">
       {isUploading ? (
         <div>
           <CircularProgressbar

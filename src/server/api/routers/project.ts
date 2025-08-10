@@ -159,4 +159,24 @@ export const projectRouter = createTRPCRouter({
     });
     return meeting;
   }),
+  getQuestions : protectedProcedure.input(
+    z.object({
+      projectId: z.string(),
+    })
+  ).query(async ({ ctx, input }) => {
+    const questions = await ctx.db.question.findMany({
+      where: {
+        projectId: input.projectId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        user: true,
+      },
+    });
+    return questions;
+  })
 });
+
+

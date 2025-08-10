@@ -1,38 +1,33 @@
-import {auth, clerkClient} from '@clerk/nextjs/server';
-import { redirect } from 'next/dist/server/api-utils';
-import React from 'react';
-import { db } from '~/server/db';
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { db } from "~/server/db";
 
-
-const syncUser = async () => {
-    const {userId} = await auth();
+export default async function SyncUserPage() {
+    const { userId } = await auth();
     if (!userId) {
-        throw new Error("User not authenticated");
+        redirect("/sign-in");
     }
-    const  Client = await clerkClient();
-const user = await Client.users.getUser(userId);
-    if (!user) {
-        throw new Error("User not found");
-    }
+
+        const client = await clerkClient();
+        const user = await client.users.getUser(userId);
 
     await db.user.upsert({
         where: { id: user.id },
         update: {
             imageUrl: user.imageUrl,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.emailAddresses[0]?.emailAddress 
+            firstName: user.firstName ?? undefined,
+            lastName: user.lastName ?? undefined,
+            email: user.emailAddresses[0]?.emailAddress,
         },
         create: {
             id: user.id,
             createdAt: new Date(),
             imageUrl: user.imageUrl,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.emailAddresses[0]?.emailAddress 
+            firstName: user.firstName ?? undefined,
+            lastName: user.lastName ?? undefined,
+            email: user.emailAddresses[0]?.emailAddress,
         },
-    })
-    return redirect('/dashboard');
-    
+    });
+
+    redirect("/dashboard");
 }
-export default syncUser;
