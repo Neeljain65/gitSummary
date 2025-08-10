@@ -1,6 +1,6 @@
 import { UserButton } from '@clerk/nextjs';
 import React from 'react'
-import { SidebarProvider } from '~/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '~/components/ui/sidebar';
 import { AppSidebar } from './dashboard/app-sidebar';
 
 type Props = {
@@ -11,7 +11,11 @@ const sideBarLayout = ({children}: Props) => {
     <SidebarProvider>
                 <AppSidebar />
                 <main className="w-full m-2">
-                    <div className='flex item-center gap-2 border-sidebar-border bg-sidebar border shadow rounded-md p-2 px-4 '>
+                    <div className='flex items-center gap-2 border-sidebar-border bg-sidebar border shadow rounded-md p-2 px-4 '>
+                        {/* Mobile hamburger to toggle sidebar */}
+                        <div className="md:hidden">
+                          <SidebarTrigger aria-label="Open menu" />
+                        </div>
                         <div className='ml-auto'>
                             <UserButton />
                         </div>
