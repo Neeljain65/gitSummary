@@ -1,10 +1,9 @@
 'use client'
-import { on } from 'events';
-import { FormInput } from 'lucide-react';
 import React from 'react'
 import { useForm } from 'react-hook-form';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
+import { useRouter } from 'next/navigation';
 
 type forminput ={
     projectName : string;
@@ -12,25 +11,30 @@ type forminput ={
     gitHubToken? : string;
 }
 
-const page = () => {
+const Page = () => {
     const { register, handleSubmit, reset } = useForm<forminput >();
+    const router = useRouter();
     const createProject = api.project.createProject.useMutation()
     function onSubmit(data: forminput) {
         // console.log(data);
-        createProject.mutate({
-            projectName: data.projectName,
-            repoUrl: data.repoUrl,
-            gitHubToken: data.gitHubToken,
-        },{
-            onSuccess: () => {
-                reset();
-                alert("Project created successfully!");
-            }
-        , onError: (error) => {
-                console.error("Error creating project:", error);
-                alert("Failed to create project. Please try again.");
-            }
-        } );
+                createProject.mutate(
+                    {
+                        projectName: data.projectName,
+                        repoUrl: data.repoUrl,
+                        gitHubToken: data.gitHubToken,
+                    },
+                    {
+                        onSuccess: (proj) => {
+                            reset();
+                            localStorage.setItem("projectId", proj.id);
+                            router.push(`/dashboard`);
+                        },
+                        onError: (error) => {
+                            console.error("Error creating project:", error);
+                            alert("Failed to create project. Please try again.");
+                        },
+                    }
+                );
         // Here you can handle the form submission, e.g., send data to an API
     }
   return (
@@ -49,4 +53,4 @@ const page = () => {
   )
 }
 
-export default page
+export default Page

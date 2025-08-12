@@ -47,7 +47,7 @@ export const aiSummarizeCommits = async (diff: string): Promise<string> => {
     } catch (error: any) {
         if (error.message?.includes('429') || error.message?.includes('quota')) {
             console.error('Rate limit hit for commit summarization, retrying in 60 seconds...');
-            await new Promise(resolve => setTimeout(resolve, 60000));
+            await new Promise(resolve => setTimeout(resolve, 65000));
             return aiSummarizeCommits(diff); // Retry once
         }
         console.error('Error in aiSummarizeCommits:', error);

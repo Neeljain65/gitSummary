@@ -23,7 +23,7 @@ export const getCommitHashes = async (githubUrl: string):Promise<Response[]>  =>
         repo
     });
     const sortedCommits = data.sort((a:any, b: any) => new Date(b.commit.author.date).getTime() - new Date(a.commit.author.date).getTime()) as any;
-    return sortedCommits.slice(0,15).map((commit: any) => ({
+    return sortedCommits.map((commit: any) => ({
         commitHashes: commit.sha,
         commitMessages: commit.commit.message,
         commitAuthor: commit.commit.author.name,
@@ -39,8 +39,9 @@ export const polling = async(projectId: string)=>{
     }
     // console.log("Polling started for project:step1", projectId, githubUrl);
     const commitHashes = await getCommitHashes(githubUrl);
-    // console.log("Polling started for project:step2", projectId, commitHashes);
+    console.log("Polling started for project:step2", projectId, commitHashes);
     const unProcessedCommits = await filterUnprocessedCommits(projectId, commitHashes);
+    console.log("Unprocessed commits:", unProcessedCommits);
     if (!project) {
         throw new Error("Project not found");
     }
@@ -56,19 +57,17 @@ export const polling = async(projectId: string)=>{
     });
     // console.log(unProcessedCommits,"summaries");
     const commit = await db.commit.createMany({
-        data: summaries.map((summary, index)=>{
-            return {
-                projectId: projectId,
-                commitHash: unProcessedCommits[index]!.commitHashes,
-                commitMessage: unProcessedCommits[index]!.commitMessages,
-                commitauthorName: unProcessedCommits[index]!.commitAuthor,
-                commitauthorAvatar: unProcessedCommits[index]!.commitAvatar,
-                commitDate: unProcessedCommits[index]!.commitDate,
-                 summary,
-            }
-        })
-
-    })
+        data: summaries.map((summary, index)=>({
+            projectId: projectId,
+            commitHash: unProcessedCommits[index]!.commitHashes,
+            commitMessage: unProcessedCommits[index]!.commitMessages,
+            commitauthorName: unProcessedCommits[index]!.commitAuthor,
+            commitauthorAvatar: unProcessedCommits[index]!.commitAvatar,
+            commitDate: unProcessedCommits[index]!.commitDate,
+            summary,
+        })),
+        skipDuplicates: true,
+    });
     return commit;
     // return unProcessedCommits;
 

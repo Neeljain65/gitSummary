@@ -16,28 +16,22 @@ export const projectRouter = createTRPCRouter({
       data: {
         githubUrl: input.repoUrl,
         name: input.projectName,
-        
-        userToProject:{
-          create:{
+        userToProject: {
+          create: {
             userId: ctx.user.userId!,
-          }
-        }
-        
+          },
+        },
       },
     });
-    
-    // Process embeddings in the background - don't await
-    indexGithubRepo(project.id, input.repoUrl, input.gitHubToken)
-      .then(() => {
-        console.log(`Embeddings completed for project ${project.id}`);
-        return polling(project.id);
-      })
-      .catch((error: any) => {
-        console.error(`Error processing embeddings for project ${project.id}:`, error);
-      });
-    
-    console.log("Project created, embedding processing started in background");
+    // No background processing! Only on user action.
     return project;
+  }),
+
+  generateEmbeddings: protectedProcedure.input(
+    z.object({ projectId: z.string(), repoUrl: z.string(), gitHubToken: z.string().optional() })
+  ).mutation(async ({ input }) => {
+    await indexGithubRepo(input.projectId, input.repoUrl, input.gitHubToken);
+    return { success: true };
   }),
   getProjects: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.project.findMany({
@@ -58,7 +52,6 @@ export const projectRouter = createTRPCRouter({
       projectId: z.string(),
     })
   ).query(async ({ ctx, input }) => {
-    polling(input.projectId).then().catch(console.error);
     const commits = await ctx.db.commit.findMany({
       where: {
         projectId: input.projectId,
@@ -68,6 +61,15 @@ export const projectRouter = createTRPCRouter({
       },
     });
     return commits;
+  }),
+  refreshCommits: protectedProcedure.input(
+    z.object({ projectId: z.string() })
+  ).mutation(async ({ ctx, input }) => {
+    const result = await polling(input.projectId).catch((e) => {
+      console.error('[COMMITS] refresh error', e);
+      return { count: 0 };
+    });
+    return { added: (result as any)?.count ?? 0 };
   }),
   
   getEmbeddingStatus: protectedProcedure.input(
